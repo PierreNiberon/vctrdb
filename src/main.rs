@@ -1,8 +1,8 @@
 mod token;
 mod vector;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use vector::VectorsDb;
-//use token::tokenize;
+use token::tokenize;
+use vector::{Message, VectorsDb};
 
 /// Health checkpoint to see if the api is online
 #[get("/")]
@@ -12,11 +12,21 @@ async fn index() -> impl Responder {
 
 /// Handler for storing a message in the database
 #[post("/messages")]
-async fn post_message(message: String) -> impl Responder {
+async fn post_message(message: String, db: web::Data<VectorsDb>) -> impl Responder {
     // tokenize the message
-    //let token = tokenize(message);
-    // store message in the database
-    HttpResponse::Ok().body("Message posted!")
+    let token_result = tokenize(message);
+    match token_result {
+        Ok(tokens) => {
+            // store message in the database
+            let message = Message { tokens };
+            db.add_message(message.clone());
+            HttpResponse::Ok().body("Message posted!")
+        }
+        Err(error) => {
+            // return HTTP response indicating that tokenization failed
+            HttpResponse::BadRequest().body(error.to_string())
+        }
+    }
 }
 
 #[actix_web::main]

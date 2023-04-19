@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 // Struct that represents a message and its tokens
 #[derive(Debug, Clone)]
 pub struct Message {
-    tokens: Vec<u32>,
+    pub tokens: Vec<u32>,
 }
 
 impl PartialEq for Message {
