@@ -1,7 +1,7 @@
-use std::sync::{Arc, Mutex};
-
+use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 // Struct that represents a message and its tokens
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
     pub tokens: Vec<u32>,
 }
@@ -35,10 +35,13 @@ impl VectorsDb {
         self.vectors.lock().unwrap().clone()
     }
     // Find a specific message and deletes it
-    pub fn delete_message(&self, message: &Message) {
+    pub fn delete_message(&self, message: &Message) -> Result<(), String> {
         let mut messages = self.vectors.lock().unwrap();
         if let Some(index) = messages.iter().position(|m| *m == *message) {
             messages.remove(index);
+            Ok(())
+        } else {
+            Err("Message not found".to_string())
         }
     }
 }
@@ -87,7 +90,7 @@ mod tests {
             tokens: vec![1, 2, 3],
         };
         db.add_message(message.clone());
-        db.delete_message(&message);
+        db.delete_message(&message).unwrap();
         let messages = db.get_messages();
         assert!(messages.is_empty());
     }
